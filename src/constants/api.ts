@@ -3,10 +3,15 @@
  * Centralized configuration to avoid hardcoded URLs across the codebase
  */
 
-// Read from environment variables
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/v1'
-const WS_URL = process.env.EXPO_PUBLIC_WS_URL || 'ws://localhost:3000/v1'
-const MAPS_API_KEY = process.env.EXPO_PUBLIC_MAPS_API_KEY || ''
+// Check raw environment variables before fallback
+const RAW_API_URL = process.env.EXPO_PUBLIC_API_URL
+const RAW_WS_URL = process.env.EXPO_PUBLIC_WS_URL
+const RAW_MAPS_API_KEY = process.env.EXPO_PUBLIC_MAPS_API_KEY
+
+// Read from environment variables with fallbacks for development
+const API_URL = RAW_API_URL || 'http://localhost:3000/v1'
+const WS_URL = RAW_WS_URL || 'ws://localhost:3000/v1'
+const MAPS_API_KEY = RAW_MAPS_API_KEY || ''
 
 // API base URLs
 export const API_CONFIG = {
@@ -54,13 +59,13 @@ export const API_ENDPOINTS = {
 
 // Validate environment variables on startup
 export function validateEnvironment() {
-  if (!API_URL) {
-    console.warn('⚠️  EXPO_PUBLIC_API_URL not configured, using default http://localhost:3000/v1')
+  if (!RAW_API_URL) {
+    console.warn('⚠️  EXPO_PUBLIC_API_URL not configured, using fallback http://localhost:3000/v1')
   }
-  if (!WS_URL) {
-    console.warn('⚠️  EXPO_PUBLIC_WS_URL not configured, using default ws://localhost:3000/v1')
+  if (!RAW_WS_URL) {
+    console.warn('⚠️  EXPO_PUBLIC_WS_URL not configured, using fallback ws://localhost:3000/v1')
   }
-  if (!MAPS_API_KEY) {
-    console.warn('⚠️  EXPO_PUBLIC_MAPS_API_KEY not configured, maps may not work')
+  if (!RAW_MAPS_API_KEY) {
+    console.warn('⚠️  EXPO_PUBLIC_MAPS_API_KEY not configured, Google Maps may not work')
   }
 }
