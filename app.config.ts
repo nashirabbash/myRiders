@@ -16,7 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     bundleIdentifier: "com.myriders.app",
     config: {
-      googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY_IOS ?? "",
+      googleMapsApiKey: process.env.EXPO_PUBLIC_MAPS_API_KEY ?? "",
     },
   },
 
@@ -32,7 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     package: "com.myriders.app",
     config: {
       googleMaps: {
-        apiKey: process.env.GOOGLE_MAPS_API_KEY_ANDROID ?? "",
+        apiKey: process.env.EXPO_PUBLIC_MAPS_API_KEY ?? "",
       },
     },
   },
