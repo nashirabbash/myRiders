@@ -3,8 +3,10 @@
  * Handles user registration, login, token refresh, and logout
  */
 
+import axios from 'axios'
 import { api } from './api'
 import { User } from '../types'
+import { API_CONFIG } from '../constants/api'
 
 interface AuthResponse {
   user: User
@@ -41,9 +43,14 @@ export const authService = {
 
   /**
    * Refresh access token using refresh token
+   * Uses raw axios to avoid recursive interceptor if refresh endpoint returns 401
    */
   refresh: async (refreshToken: string): Promise<RefreshResponse> => {
-    const { data } = await api.post<RefreshResponse>('/auth/refresh', { refresh_token: refreshToken })
+    const { data } = await axios.post<RefreshResponse>(
+      `${API_CONFIG.baseURL}/auth/refresh`,
+      { refresh_token: refreshToken },
+      { timeout: API_CONFIG.timeout }
+    )
     return data
   },
 
