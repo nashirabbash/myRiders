@@ -32,6 +32,12 @@ function initDb(): SQLite.SQLiteDatabase {
     )
   `)
 
+  // Create index for common unsynced-read query: WHERE ride_id = ? AND synced = 0 ORDER BY timestamp
+  db.execSync(`
+    CREATE INDEX IF NOT EXISTS idx_gps_buffer_ride_synced_timestamp
+    ON gps_buffer(ride_id, synced, timestamp)
+  `)
+
   return db
 }
 
