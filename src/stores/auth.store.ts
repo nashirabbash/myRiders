@@ -40,7 +40,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   /**
-   * Restore authentication state from SecureStore (called on app launch)
+   * Restore authentication token from SecureStore (called on app launch)
+   * Note: This only restores the token. User profile should be fetched separately via getMe()
+   * to establish full authenticated state.
    */
   loadFromStorage: async () => {
     const token = await SecureStore.getItemAsync('access_token')

@@ -27,22 +27,28 @@ interface RideStore {
   updateMetrics: (update: Partial<LiveMetrics>) => void
   addPoint: (point: { lat: number; lng: number }) => void
   stopRide: () => Promise<void>
+  loadFromStorage: () => Promise<void>
 }
 
-const EMPTY_METRICS: LiveMetrics = {
-  distance_km: 0,
-  duration_seconds: 0,
-  max_speed_kmh: 0,
-  avg_speed_kmh: 0,
-  calories: 0,
-  elevation_m: 0,
+/**
+ * Helper to create fresh empty metrics object (avoid shared reference)
+ */
+function createEmptyMetrics(): LiveMetrics {
+  return {
+    distance_km: 0,
+    duration_seconds: 0,
+    max_speed_kmh: 0,
+    avg_speed_kmh: 0,
+    calories: 0,
+    elevation_m: 0,
+  }
 }
 
 export const useRideStore = create<RideStore>((set) => ({
   activeRideId: null,
   wsToken: null,
   vehicleType: null,
-  metrics: EMPTY_METRICS,
+  metrics: createEmptyMetrics(),
   polylinePoints: [],
   isRecording: false,
 
@@ -56,7 +62,7 @@ export const useRideStore = create<RideStore>((set) => ({
       wsToken,
       vehicleType,
       isRecording: true,
-      metrics: EMPTY_METRICS,
+      metrics: createEmptyMetrics(),
       polylinePoints: [],
     })
   },
@@ -87,8 +93,25 @@ export const useRideStore = create<RideStore>((set) => ({
       wsToken: null,
       vehicleType: null,
       isRecording: false,
-      metrics: EMPTY_METRICS,
+      metrics: createEmptyMetrics(),
       polylinePoints: [],
     })
+  },
+
+  /**
+   * Restore active ride state from SecureStore (called on app launch for crash recovery)
+   * Note: This only restores the ride ID. Full ride state (metrics, route) cannot be recovered
+   * from a background recording. The app should fetch the completed ride via the API.
+   */
+  loadFromStorage: async () => {
+    const rideId = await SecureStore.getItemAsync('active_ride_id')
+    if (rideId) {
+      set({
+        activeRideId: rideId,
+        isRecording: true,
+        metrics: createEmptyMetrics(),
+        polylinePoints: [],
+      })
+    }
   },
 }))
