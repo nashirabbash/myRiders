@@ -99,6 +99,8 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
           if (!hasReceivedFirstAck.current) {
             hasReceivedFirstAck.current = true
             lastServerDistance.current = msg.current_distance_km
+            // Trigger flush now that baseline is established
+            flushBuffer()
           } else {
             // Only mark synced when distance has increased by at least the expected batch distance
             // This ensures delivery confirmation and prevents confusion with other concurrent points
