@@ -78,6 +78,7 @@ api.interceptors.request.use(async (config) => {
 /**
  * Response interceptor - handle 401 and auto-refresh tokens
  * Uses single-flight pattern to prevent concurrent refresh requests
+ * Only clears tokens for auth-invalid responses (401/403), not for transient failures
  */
 api.interceptors.response.use(
   (res) => res,
@@ -98,8 +99,17 @@ api.interceptors.response.use(
         // Retry original request
         return api(original)
       } catch (refreshError) {
-        // Refresh failed - clear invalid tokens to prevent retry loops
-        await clearAuthTokens()
+        // Check if refresh failed due to auth-invalid response (401/403)
+        // vs transient network/server error
+        const isAuthError =
+          (refreshError instanceof axios.AxiosError &&
+           (refreshError.response?.status === 401 || refreshError.response?.status === 403))
+
+        if (isAuthError) {
+          // Token is invalid/expired - clear it to prevent infinite retry loops
+          await clearAuthTokens()
+        }
+        // For transient failures (timeout, network error), keep tokens so app can retry later
 
         // Reject with original error
         return Promise.reject(error)
