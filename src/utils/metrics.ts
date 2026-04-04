@@ -9,9 +9,19 @@
  * @returns "H:MM:SS" if hours > 0, else "MM:SS"
  */
 export function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.round(seconds % 60)
+  let s = Math.round(seconds % 60)
+  let m = Math.floor((seconds % 3600) / 60)
+  let h = Math.floor(seconds / 3600)
+
+  // Handle rounding edge case: 59.6s rounds to 60s, carry into minutes
+  if (s === 60) {
+    s = 0
+    m += 1
+  }
+  if (m === 60) {
+    m = 0
+    h += 1
+  }
 
   if (h > 0) {
     return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
