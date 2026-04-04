@@ -100,17 +100,19 @@ export const useRideStore = create<RideStore>((set) => ({
 
   /**
    * Restore active ride state from SecureStore (called on app launch for crash recovery)
-   * Note: This only restores the ride ID. Full ride state (metrics, route) cannot be recovered
-   * from a background recording. The app should fetch the completed ride via the API.
+   * Note: Only the ride ID is persisted, not full metrics or route.
+   * App should fetch the completed ride from API and prompt user to resume or discard.
    */
   loadFromStorage: async () => {
     const rideId = await SecureStore.getItemAsync('active_ride_id')
     if (rideId) {
+      // Restore only the ride ID without setting isRecording = true
+      // This allows the app to detect a crashed ride without pretending the session is fully active
+      // Later code can prompt user to resume, discard, or fetch the ride from API
       set({
         activeRideId: rideId,
-        isRecording: true,
-        metrics: createEmptyMetrics(),
-        polylinePoints: [],
+        // Keep isRecording: false and wsToken/vehicleType as null
+        // so the recovery flow is explicit, not auto-resumed
       })
     }
   },
