@@ -1,7 +1,7 @@
-// API service layer
-// Examples:
-// - api.ts              : Axios instance with interceptors
-// - auth.service.ts     : Login, register, token refresh
-// - rides.service.ts    : Create, list, end rides
-// - social.service.ts   : Feed, likes, leaderboard
-// - leaderboard.service.ts: Ranking data
+// API service layer exports
+export { api } from './api'
+export { authService } from './auth.service'
+export { vehiclesService } from './vehicles.service'
+export { ridesService } from './rides.service'
+export { socialService } from './social.service'
+export { leaderboardService } from './leaderboard.service'
