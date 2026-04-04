@@ -17,7 +17,12 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
   const isManuallyDisconnected = useRef(false)
   const lastServerDistance = useRef(0)
   const hasReceivedFirstAck = useRef(false)
-  const pendingSync = useRef<{ ids: number[]; expectedDistance: number; flushDistance: number } | null>(null)
+  const pendingSync = useRef<{
+    ids: number[]
+    expectedDistance: number
+    flushDistance: number
+    acksAfterFlush: number
+  } | null>(null)
   const [status, setStatus] = useState<WSStatus>('disconnected')
 
   const addPoint = useRideStore((s) => s.addPoint)
@@ -61,6 +66,7 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
         ids: batchIds,
         expectedDistance: batchDistance,
         flushDistance: lastServerDistance.current,
+        acksAfterFlush: 0,
       }
     } catch (e) {
       console.error('[WebSocket] Error flushing buffer:', e)
@@ -101,15 +107,21 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
             lastServerDistance.current = msg.current_distance_km
             // Trigger flush now that baseline is established
             flushBuffer()
-          } else {
-            // Only mark synced when distance has increased by at least the expected batch distance
-            // This ensures delivery confirmation and prevents confusion with other concurrent points
-            if (
-              pendingSync.current &&
-              msg.current_distance_km >=
-                pendingSync.current.flushDistance + pendingSync.current.expectedDistance
-            ) {
-              GPSBuffer.markSynced(pendingSync.current.ids)
+          } else if (pendingSync.current) {
+            pendingSync.current.acksAfterFlush++
+            const batch = pendingSync.current
+
+            // For batches with movement: confirm when server distance covers the batch
+            const distanceConfirmed =
+              batch.expectedDistance > 0 &&
+              msg.current_distance_km >= batch.flushDistance + batch.expectedDistance
+
+            // For zero-distance batches (single point or stationary): require one ack
+            // cycle after flush since distance signal alone cannot confirm delivery
+            const ackConfirmed = batch.expectedDistance === 0 && batch.acksAfterFlush >= 1
+
+            if (distanceConfirmed || ackConfirmed) {
+              GPSBuffer.markSynced(batch.ids)
               pendingSync.current = null
             }
           }
