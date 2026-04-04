@@ -16,6 +16,7 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
   const reconnectAttempts = useRef(0)
   const isManuallyDisconnected = useRef(false)
   const lastServerDistance = useRef(0)
+  const hasReceivedFirstAck = useRef(false)
   const pendingSync = useRef<{ ids: number[]; expectedDistance: number; flushDistance: number } | null>(null)
   const [status, setStatus] = useState<WSStatus>('disconnected')
 
@@ -29,6 +30,8 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
    */
   const flushBuffer = useCallback(async () => {
     if (!rideId || ws.current?.readyState !== WebSocket.OPEN) return
+    // Don't flush until first ack establishes accurate baseline distance
+    if (!hasReceivedFirstAck.current) return
 
     try {
       const pending = await GPSBuffer.getUnsyncedForRide(rideId)
@@ -75,6 +78,8 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
     if (isManuallyDisconnected.current) return
 
     setStatus('connecting')
+    // Reset first ack flag for new connection
+    hasReceivedFirstAck.current = false
     const wsUrl = `${process.env.EXPO_PUBLIC_WS_URL}/rides/${rideId}/stream?token=${wsToken}`
 
     ws.current = new WebSocket(wsUrl)
@@ -90,19 +95,24 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
         const msg = JSON.parse(event.data)
         // Handle ack message: update metrics and confirm buffer synced if distance advanced
         if (msg.type === 'ack' && msg.current_distance_km != null) {
+          // Mark baseline distance on first ack so flushBuffer has accurate reference
+          if (!hasReceivedFirstAck.current) {
+            hasReceivedFirstAck.current = true
+            lastServerDistance.current = msg.current_distance_km
+          } else {
+            // Only mark synced when distance has increased by at least the expected batch distance
+            // This ensures delivery confirmation and prevents confusion with other concurrent points
+            if (
+              pendingSync.current &&
+              msg.current_distance_km >=
+                pendingSync.current.flushDistance + pendingSync.current.expectedDistance
+            ) {
+              GPSBuffer.markSynced(pendingSync.current.ids)
+              pendingSync.current = null
+            }
+          }
           updateMetrics({ distance_km: msg.current_distance_km })
           lastServerDistance.current = msg.current_distance_km
-
-          // Only mark synced when distance has increased by at least the expected batch distance
-          // This ensures delivery confirmation and prevents confusion with other concurrent points
-          if (
-            pendingSync.current &&
-            msg.current_distance_km >=
-              pendingSync.current.flushDistance + pendingSync.current.expectedDistance
-          ) {
-            GPSBuffer.markSynced(pendingSync.current.ids)
-            pendingSync.current = null
-          }
         }
       } catch (e) {
         console.error('[WebSocket] Error parsing message:', e)
