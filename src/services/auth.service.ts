@@ -5,14 +5,8 @@
 
 import axios from 'axios'
 import { api } from './api'
-import { User } from '../types'
-import { API_CONFIG } from '../constants/api'
-
-interface AuthResponse {
-  user: User
-  access_token: string
-  refresh_token: string
-}
+import { AuthResponse, User } from '../types'
+import { API_CONFIG, API_ENDPOINTS } from '../constants/api'
 
 interface RefreshResponse {
   access_token: string
@@ -22,6 +16,7 @@ interface RefreshResponse {
 export const authService = {
   /**
    * Register a new user
+   * Returns flat AuthResponse with user fields and tokens
    */
   register: async (payload: {
     username: string
@@ -29,15 +24,16 @@ export const authService = {
     password: string
     display_name: string
   }): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>('/auth/register', payload)
+    const { data } = await api.post<AuthResponse>(API_ENDPOINTS.auth.register, payload)
     return data
   },
 
   /**
    * Login with email and password
+   * Returns flat AuthResponse with user fields and tokens
    */
   login: async (email: string, password: string): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>('/auth/login', { email, password })
+    const { data } = await api.post<AuthResponse>(API_ENDPOINTS.auth.login, { email, password })
     return data
   },
 
@@ -47,7 +43,7 @@ export const authService = {
    */
   refresh: async (refreshToken: string): Promise<RefreshResponse> => {
     const { data } = await axios.post<RefreshResponse>(
-      `${API_CONFIG.baseURL}/auth/refresh`,
+      `${API_CONFIG.baseURL}${API_ENDPOINTS.auth.refresh}`,
       { refresh_token: refreshToken },
       { timeout: API_CONFIG.timeout }
     )
@@ -58,14 +54,14 @@ export const authService = {
    * Logout user
    */
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout')
+    await api.post(API_ENDPOINTS.auth.logout)
   },
 
   /**
    * Get current user profile
    */
   getMe: async (): Promise<User> => {
-    const { data } = await api.get<User>('/users/me')
+    const { data } = await api.get<User>(API_ENDPOINTS.users.profile)
     return data
   },
 }
