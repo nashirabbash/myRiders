@@ -32,10 +32,11 @@ interface FriendsLeaderboardResponse {
 
 export const leaderboardService = {
   /**
-   * Get global leaderboard with optional vehicle type filter and pagination
+   * Get global leaderboard with optional vehicle type filter, period, and pagination
    */
   getGlobal: async (params?: {
     vehicle_type?: VehicleType
+    period_type?: 'weekly' | 'monthly'
     page?: number
     limit?: number
   }): Promise<LeaderboardResponse> => {
@@ -44,10 +45,11 @@ export const leaderboardService = {
   },
 
   /**
-   * Get friends leaderboard with optional vehicle type filter and pagination
+   * Get friends leaderboard with optional vehicle type filter, period, and pagination
    */
   getFriends: async (params?: {
     vehicle_type?: VehicleType
+    period_type?: 'weekly' | 'monthly'
     page?: number
     limit?: number
   }): Promise<FriendsLeaderboardResponse> => {
