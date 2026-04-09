@@ -4,18 +4,23 @@
  */
 
 import { api } from './api'
-import { FeedItem, User } from '../types'
+import { FeedItem, PublicUserProfile } from '../types'
 import { API_ENDPOINTS } from '../constants/api'
 
+/**
+ * Feed response from GET /v1/feed
+ */
 interface FeedResponse {
   data: FeedItem[]
-  total: number
   page: number
-  hasMore: boolean
+  limit: number
 }
 
-interface LikeResponse {
-  liked: boolean
+/**
+ * Message response from action endpoints
+ */
+interface MessageResponse {
+  message: string
 }
 
 export const socialService = {
@@ -43,17 +48,18 @@ export const socialService = {
 
   /**
    * Like a ride (toggles like state)
+   * Returns message response per spec
    */
-  likeRide: async (rideId: string): Promise<LikeResponse> => {
-    const { data } = await api.post<LikeResponse>(API_ENDPOINTS.social.like(rideId))
+  likeRide: async (rideId: string): Promise<MessageResponse> => {
+    const { data } = await api.post<MessageResponse>(API_ENDPOINTS.social.like(rideId))
     return data
   },
 
   /**
-   * Get user profile by ID
+   * Get public user profile by ID
    */
-  getProfile: async (userId: string): Promise<User> => {
-    const { data } = await api.get<User>(API_ENDPOINTS.users.getById(userId))
+  getProfile: async (userId: string): Promise<PublicUserProfile> => {
+    const { data } = await api.get<PublicUserProfile>(API_ENDPOINTS.users.getById(userId))
     return data
   },
 }

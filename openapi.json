@@ -1,0 +1,1500 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TrackRide API",
+    "description": "Backend API for TrackRide — a ride tracking app supporting motorcycles, cars, and bicycles.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.my-riders.online",
+      "description": "Production"
+    },
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Local development"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "UNAUTHORIZED" },
+          "detail": { "type": "string", "example": "additional error details" }
+        },
+        "required": ["error"]
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "required": ["message"]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "example": "securepass123"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "John Doe"
+          }
+        },
+        "required": ["username", "email", "password", "display_name"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": { "type": "string", "example": "securepass123" }
+        },
+        "required": ["email", "password"]
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refresh_token": { "type": "string" }
+        },
+        "required": ["refresh_token"]
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "display_name": { "type": "string" },
+          "avatar_url": { "type": "string" },
+          "access_token": { "type": "string" },
+          "refresh_token": { "type": "string" },
+          "expires_in": { "type": "integer", "example": 3600 }
+        }
+      },
+      "RefreshResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": { "type": "string" },
+          "expires_in": { "type": "integer", "example": 3600 }
+        }
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "username": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "display_name": { "type": "string" },
+          "avatar_url": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PublicUserProfile": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "username": { "type": "string" },
+          "display_name": { "type": "string" },
+          "avatar_url": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "avatar_url": { "type": "string", "format": "uri" }
+        }
+      },
+      "VehicleType": {
+        "type": "string",
+        "enum": ["motor", "mobil", "sepeda"]
+      },
+      "CreateVehicleRequest": {
+        "type": "object",
+        "properties": {
+          "type": { "$ref": "#/components/schemas/VehicleType" },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "My Bike"
+          },
+          "brand": { "type": "string", "maxLength": 50, "example": "Honda" },
+          "color": { "type": "string", "maxLength": 30, "example": "red" }
+        },
+        "required": ["type", "name"]
+      },
+      "UpdateVehicleRequest": {
+        "type": "object",
+        "properties": {
+          "type": { "$ref": "#/components/schemas/VehicleType" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "brand": { "type": "string", "maxLength": 50 },
+          "color": { "type": "string", "maxLength": 30 }
+        }
+      },
+      "VehicleResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "type": { "$ref": "#/components/schemas/VehicleType" },
+          "name": { "type": "string" },
+          "brand": { "type": "string" },
+          "color": { "type": "string" },
+          "is_active": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "StartRideRequest": {
+        "type": "object",
+        "properties": {
+          "vehicle_id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string", "example": "Morning commute" }
+        },
+        "required": ["vehicle_id"]
+      },
+      "StartRideResponse": {
+        "type": "object",
+        "properties": {
+          "ride_id": { "type": "string", "format": "uuid" },
+          "ws_token": {
+            "type": "string",
+            "description": "Short-lived token for WebSocket authentication (TTL 10min)"
+          },
+          "started_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RouteSummary": {
+        "type": "object",
+        "properties": {
+          "polyline": {
+            "type": "string",
+            "description": "Google Encoded Polyline"
+          },
+          "cities": { "type": "array", "items": { "type": "string" } },
+          "bounding_box": {
+            "type": "object",
+            "properties": {
+              "north": { "type": "number" },
+              "south": { "type": "number" },
+              "east": { "type": "number" },
+              "west": { "type": "number" }
+            }
+          }
+        }
+      },
+      "RideResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "vehicle_id": { "type": "string", "format": "uuid" },
+          "vehicle_type": { "$ref": "#/components/schemas/VehicleType" },
+          "vehicle_name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["active", "completed", "abandoned"]
+          },
+          "started_at": { "type": "string", "format": "date-time" },
+          "ended_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "distance_km": { "type": "number", "format": "double" },
+          "duration_seconds": { "type": "integer" },
+          "max_speed_kmh": { "type": "number", "format": "double" },
+          "avg_speed_kmh": { "type": "number", "format": "double" },
+          "elevation_m": { "type": "number", "format": "double" },
+          "calories": { "type": "integer" },
+          "route_summary": { "$ref": "#/components/schemas/RouteSummary" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RideListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RideResponse" }
+          },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" }
+        }
+      },
+      "CommentRequest": {
+        "type": "object",
+        "properties": {
+          "content": { "type": "string", "minLength": 1, "maxLength": 280 }
+        },
+        "required": ["content"]
+      },
+      "CommentResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "content": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OwnerInfo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "username": { "type": "string" },
+          "display_name": { "type": "string" },
+          "avatar_url": { "type": "string" }
+        }
+      },
+      "FeedItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "started_at": { "type": "string", "format": "date-time" },
+          "ended_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "distance_km": { "type": "number", "format": "double" },
+          "duration_seconds": { "type": "integer" },
+          "max_speed_kmh": { "type": "number", "format": "double" },
+          "avg_speed_kmh": { "type": "number", "format": "double" },
+          "elevation_m": { "type": "number", "format": "double" },
+          "calories": { "type": "integer" },
+          "route_summary": { "$ref": "#/components/schemas/RouteSummary" },
+          "vehicle_type": { "$ref": "#/components/schemas/VehicleType" },
+          "vehicle_name": { "type": "string" },
+          "like_count": { "type": "integer" },
+          "comment_count": { "type": "integer" },
+          "user_has_liked": { "type": "boolean" },
+          "owner": { "$ref": "#/components/schemas/OwnerInfo" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "FeedResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FeedItem" }
+          },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" }
+        }
+      },
+      "LeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "vehicle_type": { "$ref": "#/components/schemas/VehicleType" },
+          "total_km": { "type": "number", "format": "double" },
+          "total_rides": { "type": "integer" },
+          "rank": { "type": "integer" },
+          "period_type": { "type": "string", "enum": ["weekly", "monthly"] },
+          "period_start": { "type": "string", "format": "date" }
+        }
+      },
+      "LeaderboardResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LeaderboardEntry" }
+          },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "period_type": { "type": "string" },
+          "vehicle_type": { "type": "string" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Returns server health status",
+        "operationId": "healthCheck",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "description": "Create a new user account and receive access and refresh tokens",
+        "operationId": "register",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "Email or username already taken",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "EMAIL_TAKEN" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "error": "VALIDATION_ERROR",
+                  "detail": "field errors"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login user",
+        "description": "Authenticate user and receive access and refresh tokens",
+        "operationId": "login",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "INVALID_CREDENTIALS" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "description": "Exchange a refresh token for a new access token",
+        "operationId": "refreshToken",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RefreshResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "TOKEN_INVALID" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "summary": "Logout user",
+        "description": "Logout the authenticated user. For MVP this is stateless — client should discard tokens.",
+        "operationId": "logout",
+        "tags": ["Auth"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Logged out",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" },
+                "example": { "message": "logged out successfully" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/me": {
+      "get": {
+        "summary": "Get current user profile",
+        "description": "Retrieve the authenticated user's complete profile",
+        "operationId": "getMe",
+        "tags": ["Users"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserProfileResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "USER_NOT_FOUND" }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update current user profile",
+        "description": "Update the authenticated user's display name and/or avatar URL. All fields are optional.",
+        "operationId": "updateMe",
+        "tags": ["Users"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserProfileResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}": {
+      "get": {
+        "summary": "Get user profile by ID",
+        "description": "Retrieve a public user profile. Does not return email address.",
+        "operationId": "getUserProfile",
+        "tags": ["Users"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public user profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PublicUserProfile" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "INVALID_ID" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "USER_NOT_FOUND" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles": {
+      "get": {
+        "summary": "List user vehicles",
+        "description": "Retrieve all vehicles owned by the authenticated user",
+        "operationId": "listVehicles",
+        "tags": ["Vehicles"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of vehicles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/VehicleResponse" }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new vehicle",
+        "description": "Create a new vehicle for the authenticated user. Type must be one of: motor, mobil, sepeda",
+        "operationId": "createVehicle",
+        "tags": ["Vehicles"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateVehicleRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vehicle created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VehicleResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vehicles/{id}": {
+      "put": {
+        "summary": "Update vehicle",
+        "description": "Update a vehicle owned by the authenticated user. All fields are optional.",
+        "operationId": "updateVehicle",
+        "tags": ["Vehicles"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Vehicle ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateVehicleRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vehicle updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/VehicleResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "VEHICLE_NOT_FOUND" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete vehicle",
+        "description": "Delete a vehicle owned by the authenticated user. Cannot delete if the vehicle is in use in an active ride.",
+        "operationId": "deleteVehicle",
+        "tags": ["Vehicles"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Vehicle ID"
+          }
+        ],
+        "responses": {
+          "204": { "description": "Vehicle deleted" },
+          "400": {
+            "description": "Invalid ID format",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "VEHICLE_NOT_FOUND" }
+              }
+            }
+          },
+          "409": {
+            "description": "Vehicle is in use by an active ride",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "VEHICLE_IN_USE" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides/start": {
+      "post": {
+        "summary": "Start a new ride",
+        "description": "Create and start a new ride for a specific vehicle. Returns a ws_token for WebSocket GPS streaming (valid 10 minutes).",
+        "operationId": "startRide",
+        "tags": ["Rides"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/StartRideRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ride started",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StartRideResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "VEHICLE_NOT_FOUND" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides/{id}/stop": {
+      "post": {
+        "summary": "Stop a ride",
+        "description": "Stop an active ride and compute metrics (distance, duration, calories, elevation gain, route summary)",
+        "operationId": "stopRide",
+        "tags": ["Rides"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Ride ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ride stopped with computed metrics",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RideResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Active ride not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "ACTIVE_RIDE_NOT_FOUND" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides": {
+      "get": {
+        "summary": "List user rides",
+        "description": "Retrieve completed rides with pagination and optional filtering by vehicle type",
+        "operationId": "listRides",
+        "tags": ["Rides"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20, "maximum": 100 },
+            "description": "Items per page"
+          },
+          {
+            "name": "vehicle_type",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/VehicleType" },
+            "description": "Filter by vehicle type"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of rides",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RideListResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides/{id}": {
+      "get": {
+        "summary": "Get ride details",
+        "description": "Retrieve detailed information about a specific ride",
+        "operationId": "getRideByID",
+        "tags": ["Rides"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Ride ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ride details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RideResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Ride not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "RIDE_NOT_FOUND" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides/{id}/stream": {
+      "get": {
+        "summary": "WebSocket GPS stream",
+        "description": "Upgrade to WebSocket for real-time GPS point streaming during an active ride. Authenticate via `?token=<ws_token>` query parameter (received from POST /rides/start). Supports message types: `gps_point`, `ping`.",
+        "operationId": "streamRide",
+        "tags": ["Rides"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Ride ID"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Short-lived ws_token from POST /rides/start (TTL 10 minutes)"
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "Switching Protocols — WebSocket handshake successful"
+          },
+          "401": {
+            "description": "Unauthorized — invalid or expired ws_token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/feed": {
+      "get": {
+        "summary": "Get user feed",
+        "description": "Retrieve rides from users you are following, with pagination and the authenticated user's like status on each ride",
+        "operationId": "getFeed",
+        "tags": ["Social"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20, "maximum": 100 },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feed items",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FeedResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{id}/follow": {
+      "post": {
+        "summary": "Follow a user",
+        "description": "Follow another user to see their rides in your feed. Idempotent — following an already-followed user is a no-op.",
+        "operationId": "followUser",
+        "tags": ["Social"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "User ID to follow"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Followed successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" },
+                "example": { "message": "FOLLOW_SUCCESS" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID or cannot follow self",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "CANNOT_FOLLOW_SELF" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "USER_NOT_FOUND" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Unfollow a user",
+        "description": "Stop following another user",
+        "operationId": "unfollowUser",
+        "tags": ["Social"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "User ID to unfollow"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unfollowed successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" },
+                "example": { "message": "UNFOLLOW_SUCCESS" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides/{id}/like": {
+      "post": {
+        "summary": "Like a ride",
+        "description": "Like another user's ride. Idempotent — liking an already-liked ride is a no-op. Sends a push notification to the ride owner if enabled.",
+        "operationId": "likeRide",
+        "tags": ["Social"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Ride ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liked successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" },
+                "example": { "message": "LIKE_SUCCESS" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Ride not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "RIDE_NOT_FOUND" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rides/{id}/comments": {
+      "post": {
+        "summary": "Comment on a ride",
+        "description": "Add a comment to a ride (max 280 characters). Sends a push notification to the ride owner if enabled.",
+        "operationId": "commentRide",
+        "tags": ["Social"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Ride ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CommentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Comment created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CommentResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "Ride not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": { "error": "RIDE_NOT_FOUND" }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/leaderboard": {
+      "get": {
+        "summary": "Get global leaderboard",
+        "description": "Retrieve the global leaderboard with optional filtering by vehicle type and period. Rankings are pre-computed by a weekly/monthly cron job.",
+        "operationId": "getGlobalLeaderboard",
+        "tags": ["Leaderboard"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "period_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["weekly", "monthly"],
+              "default": "weekly"
+            },
+            "description": "Leaderboard period"
+          },
+          {
+            "name": "vehicle_type",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/VehicleType" },
+            "description": "Filter by vehicle type"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20, "maximum": 100 },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard entries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeaderboardResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+                "example": {
+                  "error": "INVALID_PERIOD_TYPE",
+                  "detail": "period_type must be 'weekly' or 'monthly'"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/leaderboard/friends": {
+      "get": {
+        "summary": "Get friends leaderboard",
+        "description": "Retrieve leaderboard rankings for users you follow, with optional filtering by vehicle type and period.",
+        "operationId": "getFriendsLeaderboard",
+        "tags": ["Leaderboard"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "period_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["weekly", "monthly"],
+              "default": "weekly"
+            },
+            "description": "Leaderboard period"
+          },
+          {
+            "name": "vehicle_type",
+            "in": "query",
+            "schema": { "$ref": "#/components/schemas/VehicleType" },
+            "description": "Filter by vehicle type"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20, "maximum": 100 },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Friends leaderboard entries",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LeaderboardResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "System", "description": "Health and system endpoints" },
+    { "name": "Auth", "description": "Registration, login, token management" },
+    { "name": "Users", "description": "User profile management" },
+    { "name": "Vehicles", "description": "Vehicle CRUD" },
+    { "name": "Rides", "description": "Ride lifecycle and GPS streaming" },
+    { "name": "Social", "description": "Feed, follows, likes, comments" },
+    { "name": "Leaderboard", "description": "Global and friends rankings" }
+  ]
+}

@@ -7,6 +7,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import { GPSBuffer } from '../utils/gpsBuffer'
 import { useRideStore } from '../stores/ride.store'
 import { haversineKm } from '../utils/metrics'
+import { API_CONFIG, API_ENDPOINTS } from '../constants/api'
 
 type WSStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -86,7 +87,8 @@ export function useRideWebSocket(rideId: string | null, wsToken: string | null) 
     setStatus('connecting')
     // Reset first ack flag for new connection
     hasReceivedFirstAck.current = false
-    const wsUrl = `${process.env.EXPO_PUBLIC_WS_URL}/rides/${rideId}/stream?token=${wsToken}`
+    // Build WebSocket URL from centralized config and endpoints
+    const wsUrl = `${API_CONFIG.wsURL}${API_ENDPOINTS.rides.stream(rideId)}?token=${wsToken}`
 
     ws.current = new WebSocket(wsUrl)
 

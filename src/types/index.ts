@@ -10,7 +10,7 @@
 export type VehicleType = 'motor' | 'mobil' | 'sepeda'
 
 /**
- * User profile information
+ * User profile information (with email, for auth responses)
  */
 export interface User {
   id: string
@@ -18,6 +18,17 @@ export interface User {
   email: string
   display_name: string
   avatar_url?: string
+}
+
+/**
+ * Public user profile (without email, for public endpoints)
+ */
+export interface PublicUserProfile {
+  id: string
+  username: string
+  display_name: string
+  avatar_url?: string
+  created_at?: string
 }
 
 /**
