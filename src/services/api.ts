@@ -5,7 +5,7 @@
 
 import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
-import { API_CONFIG } from '../constants/api'
+import { API_CONFIG, API_ENDPOINTS } from '../constants/api'
 
 export const api = axios.create({
   baseURL: API_CONFIG.baseURL,
@@ -36,7 +36,7 @@ async function performTokenRefresh(): Promise<string> {
 
       // Use raw axios to avoid recursive interceptor
       const { data } = await axios.post(
-        `${API_CONFIG.baseURL}/auth/refresh`,
+        `${API_CONFIG.baseURL}${API_ENDPOINTS.auth.refresh}`,
         { refresh_token: refreshToken },
         { timeout: API_CONFIG.timeout }
       )

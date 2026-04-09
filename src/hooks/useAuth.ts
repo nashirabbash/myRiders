@@ -12,6 +12,7 @@ export function useAuth() {
 
   /**
    * Register a new user account
+   * AuthResponse is flat: extract user fields and tokens
    */
   const register = async (payload: {
     username: string
@@ -20,17 +21,34 @@ export function useAuth() {
     display_name: string
   }): Promise<User> => {
     const result = await authService.register(payload)
-    await store.setAuth(result.user, result.access_token, result.refresh_token)
-    return result.user
+    // Extract user from flat AuthResponse
+    const user: User = {
+      id: result.id,
+      username: result.username,
+      email: result.email,
+      display_name: result.display_name,
+      avatar_url: result.avatar_url,
+    }
+    await store.setAuth(user, result.access_token, result.refresh_token)
+    return user
   }
 
   /**
    * Login with email and password
+   * AuthResponse is flat: extract user fields and tokens
    */
   const login = async (email: string, password: string): Promise<User> => {
     const result = await authService.login(email, password)
-    await store.setAuth(result.user, result.access_token, result.refresh_token)
-    return result.user
+    // Extract user from flat AuthResponse
+    const user: User = {
+      id: result.id,
+      username: result.username,
+      email: result.email,
+      display_name: result.display_name,
+      avatar_url: result.avatar_url,
+    }
+    await store.setAuth(user, result.access_token, result.refresh_token)
+    return user
   }
 
   /**

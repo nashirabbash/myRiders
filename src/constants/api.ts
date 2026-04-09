@@ -9,8 +9,9 @@ const RAW_WS_URL = process.env.EXPO_PUBLIC_WS_URL
 const RAW_MAPS_API_KEY = process.env.EXPO_PUBLIC_MAPS_API_KEY
 
 // Read from environment variables with fallbacks for development
-const API_URL = RAW_API_URL || 'http://localhost:3000/v1'
-const WS_URL = RAW_WS_URL || 'ws://localhost:3000/v1'
+// Local dev server per openapi.json: http://127.0.0.1:8080
+const API_URL = RAW_API_URL || 'http://127.0.0.1:8080'
+const WS_URL = RAW_WS_URL || 'ws://127.0.0.1:8080'
 const MAPS_API_KEY = RAW_MAPS_API_KEY || ''
 
 // API base URLs
@@ -21,39 +22,48 @@ export const API_CONFIG = {
   timeout: 10000,
 }
 
-// API endpoints
+// API endpoints - all paths match openapi.json spec
 export const API_ENDPOINTS = {
   // Auth
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    refresh: '/auth/refresh',
-    logout: '/auth/logout',
+    login: '/v1/auth/login',
+    register: '/v1/auth/register',
+    refresh: '/v1/auth/refresh',
+    logout: '/v1/auth/logout',
   },
   // Rides
   rides: {
-    list: '/rides',
-    create: '/rides',
-    detail: (id: string) => `/rides/${id}`,
-    update: (id: string) => `/rides/${id}`,
-    end: (id: string) => `/rides/${id}/end`,
+    start: '/v1/rides/start',
+    list: '/v1/rides',
+    detail: (id: string) => `/v1/rides/${id}`,
+    stop: (id: string) => `/v1/rides/${id}/stop`,
+    stream: (id: string) => `/v1/rides/${id}/stream`,
   },
   // Users
   users: {
-    profile: '/users/me',
-    update: '/users/me',
-    getPublic: (username: string) => `/users/${username}`,
+    profile: '/v1/users/me',
+    update: '/v1/users/me',
+    getById: (id: string) => `/v1/users/${id}`,
+  },
+  // Vehicles
+  vehicles: {
+    list: '/v1/vehicles',
+    create: '/v1/vehicles',
+    update: (id: string) => `/v1/vehicles/${id}`,
+    delete: (id: string) => `/v1/vehicles/${id}`,
   },
   // Leaderboard
   leaderboard: {
-    global: '/leaderboard/global',
-    friends: '/leaderboard/friends',
+    global: '/v1/leaderboard',
+    friends: '/v1/leaderboard/friends',
   },
   // Social
   social: {
-    feed: '/feed',
-    like: (rideId: string) => `/rides/${rideId}/like`,
-    unlike: (rideId: string) => `/rides/${rideId}/unlike`,
+    feed: '/v1/feed',
+    like: (rideId: string) => `/v1/rides/${rideId}/like`,
+    follow: (userId: string) => `/v1/users/${userId}/follow`,
+    unfollow: (userId: string) => `/v1/users/${userId}/follow`,
+    comment: (rideId: string) => `/v1/rides/${rideId}/comments`,
   },
 }
 

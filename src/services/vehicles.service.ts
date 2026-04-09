@@ -5,13 +5,14 @@
 
 import { api } from './api'
 import { Vehicle, VehicleType } from '../types'
+import { API_ENDPOINTS } from '../constants/api'
 
 export const vehiclesService = {
   /**
    * Get all vehicles for the current user
    */
   list: async (): Promise<Vehicle[]> => {
-    const { data } = await api.get<Vehicle[]>('/vehicles')
+    const { data } = await api.get<Vehicle[]>(API_ENDPOINTS.vehicles.list)
     return data
   },
 
@@ -24,7 +25,7 @@ export const vehiclesService = {
     brand?: string
     color?: string
   }): Promise<Vehicle> => {
-    const { data } = await api.post<Vehicle>('/vehicles', payload)
+    const { data } = await api.post<Vehicle>(API_ENDPOINTS.vehicles.create, payload)
     return data
   },
 
@@ -35,7 +36,7 @@ export const vehiclesService = {
     id: string,
     payload: Partial<Pick<Vehicle, 'name' | 'brand' | 'color' | 'is_active'>>
   ): Promise<Vehicle> => {
-    const { data } = await api.put<Vehicle>(`/vehicles/${id}`, payload)
+    const { data } = await api.put<Vehicle>(API_ENDPOINTS.vehicles.update(id), payload)
     return data
   },
 
@@ -43,6 +44,6 @@ export const vehiclesService = {
    * Delete a vehicle
    */
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/vehicles/${id}`)
+    await api.delete(API_ENDPOINTS.vehicles.delete(id))
   },
 }

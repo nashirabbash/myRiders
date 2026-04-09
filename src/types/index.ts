@@ -1,6 +1,7 @@
 /**
  * Shared Type Definitions for TrackRide
  * Centralized source of truth for all data models used across the application
+ * Matches openapi.json schemas exactly
  */
 
 /**
@@ -9,7 +10,7 @@
 export type VehicleType = 'motor' | 'mobil' | 'sepeda'
 
 /**
- * User profile information
+ * User profile information (with email, for auth responses)
  */
 export interface User {
   id: string
@@ -20,16 +21,42 @@ export interface User {
 }
 
 /**
+ * Public user profile (without email, for public endpoints)
+ */
+export interface PublicUserProfile {
+  id: string
+  username: string
+  display_name: string
+  avatar_url?: string
+  created_at?: string
+}
+
+/**
+ * Auth response from login/register - flat structure per API spec
+ */
+export interface AuthResponse {
+  id: string
+  username: string
+  email: string
+  display_name: string
+  avatar_url?: string
+  access_token: string
+  refresh_token: string
+  expires_in: number
+}
+
+/**
  * Vehicle owned by a user
  */
 export interface Vehicle {
   id: string
-  user_id: string
   type: VehicleType
   name: string
   brand?: string
   color?: string
   is_active: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 /**
@@ -45,27 +72,39 @@ export interface RideMetrics {
 }
 
 /**
- * A completed or in-progress ride
+ * Route summary with polyline and cities
  */
-export interface Ride extends RideMetrics {
-  id: string
-  user_id: string
-  vehicle_id: string
-  vehicle: Vehicle
-  title?: string
-  started_at: string
-  ended_at?: string
-  status: 'active' | 'completed' | 'abandoned'
-  route_summary?: {
-    polyline: string
-    cities: string[]
-    bounding_box: {
-      north: number
-      south: number
-      east: number
-      west: number
-    }
+export interface RouteSummary {
+  polyline: string
+  cities: string[]
+  bounding_box: {
+    north: number
+    south: number
+    east: number
+    west: number
   }
+}
+
+/**
+ * A completed or in-progress ride - matches RideResponse schema
+ */
+export interface Ride {
+  id: string
+  title?: string
+  vehicle_id: string
+  vehicle_type: VehicleType
+  vehicle_name: string
+  status: 'active' | 'completed' | 'abandoned'
+  started_at: string
+  ended_at?: string | null
+  distance_km: number
+  duration_seconds: number
+  max_speed_kmh: number
+  avg_speed_kmh: number
+  elevation_m: number
+  calories: number
+  route_summary?: RouteSummary
+  created_at?: string
 }
 
 /**
@@ -80,22 +119,35 @@ export interface GPSPoint {
 }
 
 /**
- * A user's position on the leaderboard
+ * Owner info for feed items
  */
-export interface LeaderboardEntry {
-  rank: number
-  user: Pick<User, 'id' | 'username' | 'display_name' | 'avatar_url'>
-  total_km: number
-  total_rides: number
-  vehicle_type: VehicleType | null
+export interface OwnerInfo {
+  id: string
+  username: string
+  display_name: string
+  avatar_url?: string
 }
 
 /**
- * A social feed item (ride completion notification)
+ * A social feed item - a ride with social interaction data
  */
-export interface FeedItem {
-  type: 'ride_completed'
-  user: Pick<User, 'id' | 'username' | 'display_name' | 'avatar_url'>
-  ride: Pick<Ride, 'id' | 'distance_km' | 'duration_seconds' | 'vehicle'>
-  created_at: string
+export interface FeedItem extends Ride {
+  like_count: number
+  comment_count: number
+  user_has_liked: boolean
+  owner: OwnerInfo
+}
+
+/**
+ * A user's position on the leaderboard - flat structure per API spec
+ */
+export interface LeaderboardEntry {
+  id: string
+  user_id: string
+  vehicle_type: VehicleType
+  total_km: number
+  total_rides: number
+  rank: number
+  period_type: 'weekly' | 'monthly'
+  period_start: string
 }

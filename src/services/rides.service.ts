@@ -5,6 +5,7 @@
 
 import { api } from './api'
 import { Ride, VehicleType } from '../types'
+import { API_ENDPOINTS } from '../constants/api'
 
 interface StartRideResponse {
   ride_id: string
@@ -22,8 +23,11 @@ export const ridesService = {
   /**
    * Start a new ride
    */
-  start: async (vehicleId: string): Promise<StartRideResponse> => {
-    const { data } = await api.post<StartRideResponse>('/rides/start', { vehicle_id: vehicleId })
+  start: async (vehicleId: string, title?: string): Promise<StartRideResponse> => {
+    const { data } = await api.post<StartRideResponse>(API_ENDPOINTS.rides.start, {
+      vehicle_id: vehicleId,
+      ...(title && { title }),
+    })
     return data
   },
 
@@ -31,7 +35,7 @@ export const ridesService = {
    * Stop an active ride
    */
   stop: async (rideId: string): Promise<Ride> => {
-    const { data } = await api.post<Ride>(`/rides/${rideId}/stop`)
+    const { data } = await api.post<Ride>(API_ENDPOINTS.rides.stop(rideId))
     return data
   },
 
@@ -43,7 +47,7 @@ export const ridesService = {
     limit?: number
     vehicle_type?: VehicleType
   }): Promise<RideListResponse> => {
-    const { data } = await api.get<RideListResponse>('/rides', { params })
+    const { data } = await api.get<RideListResponse>(API_ENDPOINTS.rides.list, { params })
     return data
   },
 
@@ -51,7 +55,7 @@ export const ridesService = {
    * Get a specific ride by ID
    */
   getById: async (id: string): Promise<Ride> => {
-    const { data } = await api.get<Ride>(`/rides/${id}`)
+    const { data } = await api.get<Ride>(API_ENDPOINTS.rides.detail(id))
     return data
   },
 }
