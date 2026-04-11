@@ -80,6 +80,35 @@ export default function FeedPost({
 
       {/* post photo */}
       <View style={styles.postPhoto} />
+
+      {/* post actions */}
+      <View style={styles.actionsContainer}>
+        <Pressable
+          onPress={() => onLike?.(post.id)}
+          style={styles.actionButton}
+        >
+          <Ionicons
+            name={post.liked ? "heart" : "heart-outline"}
+            size={20}
+            color={post.liked ? "#ef4444" : "#64748b"}
+          />
+          <ThemedText type="small">{post.likes_count}</ThemedText>
+        </Pressable>
+        <Pressable
+          onPress={() => onComment?.(post.id)}
+          style={styles.actionButton}
+        >
+          <Ionicons name="chatbubble-outline" size={20} color="#64748b" />
+          <ThemedText type="small">{post.comments_count}</ThemedText>
+        </Pressable>
+        <Pressable
+          onPress={() => onShare?.(post.id)}
+          style={styles.actionButton}
+        >
+          <Ionicons name="share-social-outline" size={20} color="#64748b" />
+          <ThemedText type="small">{post.shares_count}</ThemedText>
+        </Pressable>
+      </View>
     </ThemedView>
   );
 }
@@ -90,6 +119,19 @@ const styles = StyleSheet.create({
     height: 256, // h-64 = 16rem = 256px
     backgroundColor: "#ffffff",
     borderRadius: 8, // rounded-lg
+  },
+  actionsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20, // px-5
+    paddingVertical: 12, // py-3
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8, // gap-2
   },
 });
 
