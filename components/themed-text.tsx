@@ -3,6 +3,21 @@ import { Platform, StyleSheet, Text, type TextProps } from "react-native";
 import { Colors, Fonts, Typography, type ThemeColor, type TypographyVariant } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
+/**
+ * Text type variants combining semantic types and direct typography styles.
+ *
+ * Semantic types (maintain backward compatibility):
+ * - default, defaultSemiBold: body text
+ * - title, subtitle: headings
+ * - small, smallBold: compact text
+ * - link, linkPrimary: interactive text
+ * - code: monospace text
+ *
+ * Direct typography styles (from HIG scale):
+ * - largeTitle, title1, title2, title3: heading scales
+ * - headline, body, callout: body scales
+ * - subheadline, footnote, caption1, caption2: compact scales
+ */
 export type ThemedTextType =
   | "default"
   | "defaultSemiBold"
@@ -12,7 +27,18 @@ export type ThemedTextType =
   | "subtitle"
   | "link"
   | "linkPrimary"
-  | "code";
+  | "code"
+  | "largeTitle"
+  | "title1"
+  | "title2"
+  | "title3"
+  | "headline"
+  | "body"
+  | "callout"
+  | "subheadline"
+  | "footnote"
+  | "caption1"
+  | "caption2";
 
 export type ThemedTextProps = TextProps & {
   type?: ThemedTextType;
@@ -21,12 +47,14 @@ export type ThemedTextProps = TextProps & {
 
 /**
  * Maps text type variants to HIG typography styles.
- * Each mapping includes the typography style name and variant (regular, bold, etc).
+ * - Semantic types map to specific typography styles with variants
+ * - Direct typography types default to "regular" variant
  */
 const typeToTypography: Record<
   ThemedTextType,
   { style: keyof typeof Typography; variant: TypographyVariant }
 > = {
+  // Semantic types (backward compatibility)
   default: { style: "body", variant: "regular" },
   defaultSemiBold: { style: "body", variant: "bold" },
   title: { style: "title1", variant: "bold" },
@@ -36,6 +64,18 @@ const typeToTypography: Record<
   link: { style: "footnote", variant: "regular" },
   linkPrimary: { style: "footnote", variant: "regular" },
   code: { style: "caption1", variant: "regular" },
+  // Direct typography styles (use regular variant by default)
+  largeTitle: { style: "largeTitle", variant: "regular" },
+  title1: { style: "title1", variant: "regular" },
+  title2: { style: "title2", variant: "regular" },
+  title3: { style: "title3", variant: "regular" },
+  headline: { style: "headline", variant: "regular" },
+  body: { style: "body", variant: "regular" },
+  callout: { style: "callout", variant: "regular" },
+  subheadline: { style: "subheadline", variant: "regular" },
+  footnote: { style: "footnote", variant: "regular" },
+  caption1: { style: "caption1", variant: "regular" },
+  caption2: { style: "caption2", variant: "regular" },
 };
 
 /**
