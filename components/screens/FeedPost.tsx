@@ -49,7 +49,9 @@ export default function FeedPost({
           </Avatar>
           <View className="flex-1">
             <ThemedText type="smallBold">{post.owner.display_name}</ThemedText>
-            <ThemedText type="footnote">{timeAgo}</ThemedText>
+            <ThemedText type="footnote">
+              {VEHICLE_CONFIG[post.vehicle_type].label} • {timeAgo}
+            </ThemedText>
           </View>
         </Pressable>
         <Pressable
@@ -68,14 +70,18 @@ export default function FeedPost({
         reiciendis nisi magni.
       </ThemedText>
 
-      {/* ride details */}
-      <View className="flex flex-row w-full items-center px-5 py-1">
-        <View className="flex-col items-center gap-1">
-          <ThemedText type="small">Distance</ThemedText>
-          <ThemedText type="defaultSemiBold">
-            {post.distance_km.toFixed(1)} km
-          </ThemedText>
-        </View>
+      {/* ride metrics */}
+      <View style={styles.metricsContainer}>
+        {vehicleConfig.metrics.map((metric) => (
+          <MetricItem
+            key={metric.key}
+            label={metric.label}
+            value={getMetricValue(post, metric.key)}
+            unit={metric.unit}
+            color={vehicleConfig.color}
+            isHighlight={metric.highlight}
+          />
+        ))}
       </View>
 
       {/* post photo */}
@@ -114,11 +120,42 @@ export default function FeedPost({
 }
 
 const styles = StyleSheet.create({
+  metricsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    paddingHorizontal: 20, // px-5
+    paddingVertical: 12, // py-3
+    gap: 8,
+  },
+  metricItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  metricLabel: {
+    fontSize: 11,
+    fontWeight: "500",
+  },
+  metricValueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 2,
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  metricUnit: {
+    fontSize: 12,
+    fontWeight: "500",
+  },
   postPhoto: {
     width: "100%",
     height: 256, // h-64 = 16rem = 256px
     backgroundColor: "#ffffff",
-    borderRadius: 8, // rounded-lg
+    borderRadius: 8,
   },
   actionsContainer: {
     flexDirection: "row",
@@ -138,22 +175,62 @@ const styles = StyleSheet.create({
 function MetricItem({
   label,
   value,
+  unit,
   color,
+  isHighlight,
 }: {
   label: string;
   value: string;
+  unit: string;
   color: string;
+  isHighlight?: boolean;
 }) {
   return (
-    <View className="items-center gap-1 flex-1">
-      <Text className="text-xs text-slate-500 dark:text-slate-400">
+    <View style={styles.metricItem}>
+      <ThemedText type="caption2" style={styles.metricLabel}>
         {label}
-      </Text>
-      <Text className="text-sm font-bold" style={{ color }}>
-        {value}
-      </Text>
+      </ThemedText>
+      <View style={styles.metricValueRow}>
+        <ThemedText
+          type="smallBold"
+          style={[styles.metricValue, isHighlight && { color }]}
+        >
+          {value}
+        </ThemedText>
+        {unit && (
+          <ThemedText type="caption2" style={styles.metricUnit}>
+            {unit}
+          </ThemedText>
+        )}
+      </View>
     </View>
   );
+}
+
+function getMetricValue(post: FeedItem, key: string): string {
+  switch (key) {
+    case "distance_km":
+      return post.distance_km.toFixed(1);
+    case "max_speed_kmh":
+      return Math.round(post.max_speed_kmh ?? 0).toString();
+    case "duration":
+      return formatDuration(post.duration_seconds ?? 0);
+    case "calories":
+      return Math.round(post.calories ?? 0).toString();
+    case "elevation_m":
+      return Math.round(post.elevation_m ?? 0).toString();
+    case "cities":
+      return post.route_summary?.cities?.join("→") ?? "—";
+    default:
+      return "—";
+  }
+}
+
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
 }
 
 function getTimeAgo(date: Date): string {
