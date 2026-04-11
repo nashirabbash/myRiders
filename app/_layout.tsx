@@ -6,10 +6,16 @@ import {
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { HeroUINativeProvider } from "heroui-native";
+import { HeroUINativeProvider, type HeroUINativeConfig } from "heroui-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "./global.css";
+
+const heroUIConfig: HeroUINativeConfig = {
+  devInfo: {
+    stylingPrinciples: false,
+  },
+};
 
 export const unstable_settings = {
   anchor: "(auth)",
@@ -20,7 +26,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <HeroUINativeProvider>
+      <HeroUINativeProvider config={heroUIConfig}>
         <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
           <Stack
             screenOptions={{

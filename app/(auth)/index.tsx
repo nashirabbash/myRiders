@@ -1,11 +1,20 @@
 import { ThemedView } from "@/components/themed-view";
 import { useRouter } from "expo-router";
 import { Button } from "heroui-native";
-import React from "react";
+import React, { useState } from "react";
 import { View } from "react-native";
 
 export default function Index() {
   const navigate = useRouter();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = () => {
+    setIsLoginOpen(false);
+    navigate.replace("/(tabs)");
+  };
+
   return (
     <ThemedView
       style={{
@@ -25,14 +34,15 @@ export default function Index() {
           paddingBottom: 40,
         }}
       >
-        <Button
-          variant="primary"
-          className="w-full"
-          onPress={() => navigate.replace("/(tabs)")}
-        >
+        <Button className="w-full" onPress={() => navigate.push("/(tabs)")}>
           LOGIN
         </Button>
-        <Button variant="outline" className="w-full">
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onPress={() => navigate.push("/(auth)/sign-up" as any)}
+        >
           SIGN UP
         </Button>
       </View>

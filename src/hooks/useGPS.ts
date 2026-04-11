@@ -9,28 +9,18 @@ import * as Linking from 'expo-linking'
 import { Alert } from 'react-native'
 import { GPSBuffer } from '../utils/gpsBuffer'
 
-/**
- * Background location task identifier - must be at module scope
- */
 export const LOCATION_TASK = 'trackride-background-location'
 
-/**
- * Register background location task at module scope
- * This runs even when the app is backgrounded
- */
 TaskManager.defineTask(LOCATION_TASK, ({ data, error }: any) => {
   if (error || !data?.locations?.length) return
 
-  // Get active ride ID from global marker
   const rideId = (global as any).__activeRideId
   if (!rideId) return
 
-  // Store raw GPS point from background location
   const loc = data.locations[0]
   try {
     GPSBuffer.addRaw(rideId, loc)
   } catch (e) {
-    // Silently ignore buffer errors in background task
     console.error('[GPS Task] Error storing location:', e)
   }
 })
