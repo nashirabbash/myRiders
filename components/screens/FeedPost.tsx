@@ -79,7 +79,6 @@ export default function FeedPost({
             value={getMetricValue(post, metric.key)}
             unit={metric.unit}
             color={vehicleConfig.color}
-            isHighlight={metric.highlight}
           />
         ))}
       </View>
@@ -94,25 +93,25 @@ export default function FeedPost({
           style={styles.actionButton}
         >
           <Ionicons
-            name={post.liked ? "heart" : "heart-outline"}
+            name={post.user_has_liked ? "heart" : "heart-outline"}
             size={20}
-            color={post.liked ? "#ef4444" : "#64748b"}
+            color={post.user_has_liked ? "#ef4444" : "#64748b"}
           />
-          <ThemedText type="small">{post.likes_count}</ThemedText>
+          <ThemedText type="small">{post.like_count}</ThemedText>
         </Pressable>
         <Pressable
           onPress={() => onComment?.(post.id)}
           style={styles.actionButton}
         >
           <Ionicons name="chatbubble-outline" size={20} color="#64748b" />
-          <ThemedText type="small">{post.comments_count}</ThemedText>
+          <ThemedText type="small">{post.comment_count}</ThemedText>
         </Pressable>
         <Pressable
           onPress={() => onShare?.(post.id)}
           style={styles.actionButton}
         >
           <Ionicons name="share-social-outline" size={20} color="#64748b" />
-          <ThemedText type="small">{post.shares_count}</ThemedText>
+          <ThemedText type="small">Share</ThemedText>
         </Pressable>
       </View>
     </ThemedView>
@@ -155,7 +154,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 256, // h-64 = 16rem = 256px
     backgroundColor: "#ffffff",
-    borderRadius: 8,
   },
   actionsContainer: {
     flexDirection: "row",
