@@ -3,6 +3,7 @@ import * as Location from "expo-location";
 import { Button, Card, useThemeColor } from "heroui-native";
 import React, { useCallback, useRef, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
+import VehicleSelectTemplate from "../template/vehicleSelectTemplate";
 import { ThemedText } from "../themed-text";
 import Map, { type MapViewRef } from "../ui/Map";
 
@@ -131,15 +132,7 @@ export default function Maps() {
               }}
             >
               {/* device parse button */}
-              {!isActive && (
-                <Button isIconOnly variant="secondary">
-                  <Ionicons
-                    name="scan"
-                    size={24}
-                    color={themeColorAccentForeground}
-                  />
-                </Button>
-              )}
+              {!isActive && <VehicleSelectTemplate />}
               {/* start button */}
               {!isActive ? (
                 <Button
