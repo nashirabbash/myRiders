@@ -40,7 +40,8 @@ const typeToTypography: Record<
 
 /**
  * Returns the semantic color for a given text type and theme mode.
- * Most types use the primary label color; links use accent color.
+ * Most types use the primary label color; only linkPrimary uses accent color.
+ * Regular link maintains the default label color for backward compatibility.
  */
 const getColorForType = (
   type: ThemedTextType,
@@ -57,7 +58,6 @@ const getColorForType = (
   const colorMap = colorScheme === "light" ? Colors.light : Colors.dark;
 
   switch (type) {
-    case "link":
     case "linkPrimary":
       return colorMap.accent;
     default:
@@ -78,10 +78,6 @@ export function ThemedText({
   const { style: typographyStyle, variant } = typeToTypography[type];
   const typographyTokens = Typography[typographyStyle][variant];
 
-  // Handle custom large title (48px) that doesn't map to HIG
-  const isCustomLargeTitle = type === "title";
-  const textStyle = isCustomLargeTitle ? styles.customTitle : undefined;
-
   // Get semantic color
   const textColor = getColorForType(type, isDarkMode ? "dark" : "light", themeColor);
 
@@ -89,16 +85,18 @@ export function ThemedText({
     <Text
       style={[
         // Apply typography tokens as base
-        !isCustomLargeTitle && {
+        {
           fontSize: typographyTokens.fontSize,
           lineHeight: typographyTokens.lineHeight,
           fontWeight: typographyTokens.fontWeight,
           letterSpacing: typographyTokens.letterSpacing,
           fontFamily: typographyTokens.fontFamily,
         },
+        // Override fontSize/lineHeight for custom large title (48px) for backward compatibility
+        // but keep fontFamily, fontWeight, letterSpacing from tokens
+        type === "title" && styles.customTitle,
         // Handle special cases
         type === "code" && styles.code,
-        isCustomLargeTitle && textStyle,
         // Color
         { color: textColor },
         // User-provided styles override
@@ -112,13 +110,12 @@ export function ThemedText({
 const styles = StyleSheet.create({
   /**
    * Custom large title (48px) that exceeds HIG typography scale.
-   * Kept for backward compatibility with existing large heading designs.
+   * Overrides only fontSize and lineHeight for backward compatibility.
+   * fontFamily, fontWeight, and letterSpacing are inherited from Typography.title1.bold.
    */
   customTitle: {
     fontSize: 48,
     lineHeight: 52,
-    fontWeight: "600",
-    letterSpacing: 0,
   },
   /**
    * Code style with monospace font.
