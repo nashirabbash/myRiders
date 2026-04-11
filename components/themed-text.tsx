@@ -1,19 +1,68 @@
 import { Platform, StyleSheet, Text, type TextProps } from "react-native";
 
-import { Fonts, ThemeColor } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
+import { Colors, Fonts, Typography, type ThemeColor, type TypographyVariant } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+
+export type ThemedTextType =
+  | "default"
+  | "defaultSemiBold"
+  | "title"
+  | "small"
+  | "smallBold"
+  | "subtitle"
+  | "link"
+  | "linkPrimary"
+  | "code";
 
 export type ThemedTextProps = TextProps & {
-  type?:
-    | "default"
-    | "title"
-    | "small"
-    | "smallBold"
-    | "subtitle"
-    | "link"
-    | "linkPrimary"
-    | "code";
+  type?: ThemedTextType;
   themeColor?: ThemeColor;
+};
+
+/**
+ * Maps text type variants to HIG typography styles.
+ * Each mapping includes the typography style name and variant (regular, bold, etc).
+ */
+const typeToTypography: Record<
+  ThemedTextType,
+  { style: keyof typeof Typography; variant: TypographyVariant }
+> = {
+  default: { style: "body", variant: "regular" },
+  defaultSemiBold: { style: "body", variant: "bold" },
+  title: { style: "title1", variant: "bold" },
+  small: { style: "footnote", variant: "regular" },
+  smallBold: { style: "footnote", variant: "bold" },
+  subtitle: { style: "title2", variant: "bold" },
+  link: { style: "footnote", variant: "regular" },
+  linkPrimary: { style: "footnote", variant: "regular" },
+  code: { style: "caption1", variant: "regular" },
+};
+
+/**
+ * Returns the semantic color for a given text type and theme mode.
+ * Most types use the primary label color; links use accent color.
+ */
+const getColorForType = (
+  type: ThemedTextType,
+  colorScheme: "light" | "dark",
+  themeColor?: ThemeColor,
+): string => {
+  // If explicit themeColor is provided, use it (for backward compatibility)
+  if (themeColor) {
+    const colorMap = colorScheme === "light" ? Colors.light : Colors.dark;
+    return colorMap[themeColor];
+  }
+
+  // Map types to semantic colors
+  const colorMap = colorScheme === "light" ? Colors.light : Colors.dark;
+
+  switch (type) {
+    case "link":
+    case "linkPrimary":
+      return colorMap.accent;
+    default:
+      return colorMap.label;
+  }
 };
 
 export function ThemedText({
@@ -22,20 +71,37 @@ export function ThemedText({
   themeColor,
   ...rest
 }: ThemedTextProps) {
-  const theme = useTheme();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+
+  // Get typography tokens for this type
+  const { style: typographyStyle, variant } = typeToTypography[type];
+  const typographyTokens = Typography[typographyStyle][variant];
+
+  // Handle custom large title (48px) that doesn't map to HIG
+  const isCustomLargeTitle = type === "title";
+  const textStyle = isCustomLargeTitle ? styles.customTitle : undefined;
+
+  // Get semantic color
+  const textColor = getColorForType(type, isDarkMode ? "dark" : "light", themeColor);
 
   return (
     <Text
       style={[
-        { color: theme[themeColor ?? "text"] },
-        type === "default" && styles.default,
-        type === "title" && styles.title,
-        type === "small" && styles.small,
-        type === "smallBold" && styles.smallBold,
-        type === "subtitle" && styles.subtitle,
-        type === "link" && styles.link,
-        type === "linkPrimary" && styles.linkPrimary,
+        // Apply typography tokens as base
+        !isCustomLargeTitle && {
+          fontSize: typographyTokens.fontSize,
+          lineHeight: typographyTokens.lineHeight,
+          fontWeight: typographyTokens.fontWeight,
+          letterSpacing: typographyTokens.letterSpacing,
+          fontFamily: typographyTokens.fontFamily,
+        },
+        // Handle special cases
         type === "code" && styles.code,
+        isCustomLargeTitle && textStyle,
+        // Color
+        { color: textColor },
+        // User-provided styles override
         style,
       ]}
       {...rest}
@@ -44,43 +110,22 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
-  },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
-  },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
-  },
-  title: {
+  /**
+   * Custom large title (48px) that exceeds HIG typography scale.
+   * Kept for backward compatibility with existing large heading designs.
+   */
+  customTitle: {
     fontSize: 48,
-    fontWeight: 600,
     lineHeight: 52,
+    fontWeight: "600",
+    letterSpacing: 0,
   },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
-  },
-  link: {
-    lineHeight: 30,
-    fontSize: 14,
-  },
-  linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: "#3c87f7",
-  },
+  /**
+   * Code style with monospace font.
+   * Uses caption1 size (12px) as base with monospace font family.
+   */
   code: {
     fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
+    fontWeight: Platform.select({ android: "700" }) ?? "500",
   },
 });
