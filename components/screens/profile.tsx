@@ -15,7 +15,7 @@ export default function Profile() {
         </Avatar>
       </BottomSheet.Trigger>
       <BottomSheet.Portal>
-        <BottomSheet.Overlay />
+        <BottomSheet.Overlay animation={"entering"} />
         <BottomSheet.Content snapPoints={["80%"]}>
           <View className="flex-row items-center justify-end">
             <View className="flex-row items-center justify-center w-full absolute">
